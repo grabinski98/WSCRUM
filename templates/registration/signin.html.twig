@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Zaloguj się!{% endblock %}
+{% block stylesheets %}
+  {{ parent() }}
+  <link href="{{ asset('css/signin.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block body %}
+  <div class="text-center">
+    <div class="form-signin">
+      <h1 class="h3 mb-3 font-weight-normal">Rejestracja</h1>
+      {{ form_start(registrationForm) }}
+      {{ form_row(registrationForm.email) }}
+      {{ form_row(registrationForm.roles) }}
+      {{ form_row(registrationForm.name, {
+        label: 'Imię: '
+      }) }}
+      {{ form_row(registrationForm.surname, {
+        label: 'Nazwisko: '
+      }) }}
+      {{ form_row(registrationForm.phoneNumber, {
+        label: 'Numer Telefonu: '
+      }) }}
+      {{ form_row(registrationForm.plainPassword) }}
+      <button type="submit" class="btn btn-lg btn-primary btn-block">Zarejestruj</button>
+      {{ form_end(registrationForm) }}
+      <small class="text-muted">Jeżeli posiadasz konto to <a href="{{ path('app_login') }}">Zaloguj się</a></small>
+    </div>
+  </div>
+{% endblock %}

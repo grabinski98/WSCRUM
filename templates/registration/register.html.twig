@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Register{% endblock %}
+
+{% block body %}
+    <div class="my-3 p-3 bg-white rounded box-shadow">
+        {{ form_start(registrationForm) }}
+        {{ form_row(registrationForm.email) }}
+        {{ form_row(registrationForm.roles) }}
+        {{ form_row(registrationForm.name, {
+            label: 'Imię: '
+        }) }}
+        {{ form_row(registrationForm.surname, {
+            label: 'Nazwisko: '
+        }) }}
+        {{ form_row(registrationForm.phoneNumber, {
+            label: 'Numer telefonu: '
+        }) }}
+        {{ form_row(registrationForm.plainPassword) }}
+        <button type="submit" class="btn">Zarejestruj</button>
+        {{ form_end(registrationForm) }}
+    </div>
+{% endblock %}
