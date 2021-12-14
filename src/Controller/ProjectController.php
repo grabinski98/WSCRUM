@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Stopwatch\Stopwatch;
 
 /**
  * @Route ("project")
@@ -38,13 +39,18 @@ class ProjectController extends AbstractController
      * @var ProjectRepository
      */
     private $projectRepository;
+    /**
+     * @var Stopwatch
+     */
+    private $stopwatch;
 
-    public function __construct(Security $security, ProjectUserRepository $projectUserRepository, EntityManagerInterface $entityManager, ProjectRepository $projectRepository)
+    public function __construct(Security $security, ProjectUserRepository $projectUserRepository, EntityManagerInterface $entityManager, ProjectRepository $projectRepository, Stopwatch $stopwatch)
     {
         $this->security = $security;
         $this->projectUserRepository = $projectUserRepository;
         $this->entityManager = $entityManager;
         $this->projectRepository = $projectRepository;
+        $this->stopwatch = $stopwatch;
     }
     public function checkOwner(Project $project):bool
     {
@@ -149,6 +155,7 @@ class ProjectController extends AbstractController
         }
         $this->entityManager->flush();
         //TODO Dodać flash message i potwierdzenie usunięcia
+        $this->addFlash('success', 'Projekt został usunięty!');
         return $this->redirectToRoute("homepage");
     }
 }
