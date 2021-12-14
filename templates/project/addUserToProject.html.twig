@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dodaj użytkowników do projektu{% endblock %}
+{% block stylesheets %}
+    {{ parent() }}
+    <link href="{{ asset('css/signin.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block body %}
+    <div class="text-center">
+        <div class="form-signin">
+            <h1 class="h3 mb-3 font-weight-normal">Dodawanie użytkowników do projektu</h1>
+            {{ form_start(addUserToProjectForm) }}
+            {{ form_row(addUserToProjectForm.projectRoles, {
+                label: 'Rola w projekcie: '
+            },
+            ) }}
+            {{ form_row(addUserToProjectForm.user, {'attr': {'class': ''}}) }}
+            <button type="submit" class="btn btn-lg btn-primary btn-block">Dodaj użytkownika</button>
+            {{ form_end(addUserToProjectForm) }}
+        </div>
+    </div>
+{% endblock %}

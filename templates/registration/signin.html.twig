@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Zaloguj się!{% endblock %}
+{% block title %}Zarejestruj się!{% endblock %}
 {% block stylesheets %}
   {{ parent() }}
   <link href="{{ asset('css/signin.css') }}" rel="stylesheet">
@@ -12,7 +12,6 @@
       <h1 class="h3 mb-3 font-weight-normal">Rejestracja</h1>
       {{ form_start(registrationForm) }}
       {{ form_row(registrationForm.email) }}
-      {{ form_row(registrationForm.roles) }}
       {{ form_row(registrationForm.name, {
         label: 'Imię: '
       }) }}

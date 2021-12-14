@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Utwórz projekt!{% endblock %}
+{% block stylesheets %}
+    {{ parent() }}
+    <link href="{{ asset('css/signin.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block body %}
+    <div class="text-center">
+        <div class="form-signin">
+            <h1 class="h3 mb-3 font-weight-normal">Tworzenie projektu</h1>
+            {{ form_start(addProjectForm) }}
+            {{ form_row(addProjectForm.name, {
+                label: 'Nazwa: '
+            }) }}
+            {{ form_row(addProjectForm.description, {
+                label: 'Opis projektu: '
+            }) }}
+            {{ form_row(addProjectForm.share, {
+                label: 'Czy chcesz udostępnić projekt: '
+            }) }}
+            <button type="submit" class="btn btn-lg btn-primary btn-block">Zarejestruj</button>
+            {{ form_end(addProjectForm) }}
+        </div>
+    </div>
+{% endblock %}

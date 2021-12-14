@@ -18,6 +18,7 @@
         {% block javascripts %}
             <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
             <script src = "{{ asset('js/offcanvas.js') }}"></script>
+            <script src="{{ asset('js/popper.min.js') }}"></script>
             <script src = "{{ asset('js/bootstrap.min.js') }}"></script>
         {% endblock %}
     </head>
@@ -40,9 +41,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="#">Profile</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Switch account</a>
-                    </li>
+                    {% if  is_granted('IS_AUTHENTICATED_FULLY') %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('projectCreate') }}">Utwórz projekt</a>
+                        </li>
+                    {% endif %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="http://example.com" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Konto</a>
                         <div class="dropdown-menu" aria-labelledby="dropdown01">
@@ -57,26 +60,21 @@
                 </ul>
             </div>
         </nav>
-
-        <div class="nav-scroller bg-white box-shadow">
-            <nav class="nav nav-underline">
-                <a class="nav-link active" href="#">Dashboard</a>
-                <a class="nav-link" href="#">
-                    Friends
-                    <span class="badge badge-pill bg-light align-text-bottom">27</span>
-                </a>
-                <a class="nav-link" href="#">Explore</a>
-                <a class="nav-link" href="#">Suggestions</a>
-                <a class="nav-link" href="#">Link</a>
-                <a class="nav-link" href="#">Link</a>
-                <a class="nav-link" href="#">Link</a>
-                <a class="nav-link" href="#">Link</a>
-                <a class="nav-link" href="#">Link</a>
-            </nav>
-        </div>
-    </body>
+        {#    <div class="nav-scroller bg-white box-shadow">#}
+        <nav class="nav nav-underline">
+            <a class="nav-link dropdown-toggle" href="http://example.com" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Projekt</a>
+            <div class="dropdown-menu" aria-labelledby="dropdown01">
+                {% for listProject in projectController.listProjects%}
+                    <a class="dropdown-item" href="{{ path('singleProject', {'id': listProject.project.id}) }}">{{ listProject.project.name }}</a>
+                {% endfor %}
+            </div>
+            {% block projectNavbar %}
+            {% endblock %}
+        </nav>
+        {#    </div>#}
 
         {% block body %}
         {% endblock %}
+    </body>
 
 </html>

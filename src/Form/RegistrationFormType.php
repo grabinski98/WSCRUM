@@ -22,20 +22,20 @@ class RegistrationFormType extends AbstractType
     {
         $builder
             ->add('email', EmailType::class)
-            ->add('roles', ChoiceType::class, [
-                'multiple' =>true,
-                'label' => 'Role :',
-                'choices' =>[
-                    'Product Owner' => 'Product Owner',
-                    'Scrum Master' => 'Scrum Master',
-                    'Front-end Developer' => 'Front-end Developer',
-                    'Back-end Developer' => 'Back-end Developer',
-                    'Full Stack Developer' => 'Full Stack Developer',
-                    'Tester' => 'Tester',
-                    'Software Engineer' => 'Software Engineer',
-                    'Analityk' => 'Analityk'
-                ]
-            ])
+//            ->add('roles', ChoiceType::class, [
+//                'multiple' =>true,
+//                'label' => 'Role :',
+//                'choices' =>[
+//                    'Product Owner' => 'Product Owner',
+//                    'Scrum Master' => 'Scrum Master',
+//                    'Front-end Developer' => 'Front-end Developer',
+//                    'Back-end Developer' => 'Back-end Developer',
+//                    'Full Stack Developer' => 'Full Stack Developer',
+//                    'Tester' => 'Tester',
+//                    'Software Engineer' => 'Software Engineer',
+//                    'Analityk' => 'Analityk'
+//                ]
+//            ])
             ->add('name')
             ->add('surname')
             ->add('phoneNumber', TelType::class, [
