@@ -43,7 +43,7 @@
                     </li>
                     {% if  is_granted('IS_AUTHENTICATED_FULLY') %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ path('projectCreate') }}">Utwórz projekt</a>
+                            <a class="nav-link" href="{{ path('project_create') }}">Utwórz projekt</a>
                         </li>
                     {% endif %}
                     <li class="nav-item dropdown">
@@ -65,7 +65,7 @@
             <a class="nav-link dropdown-toggle" href="http://example.com" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Projekt</a>
             <div class="dropdown-menu" aria-labelledby="dropdown01">
                 {% for listProject in projectController.listProjects%}
-                    <a class="dropdown-item" href="{{ path('singleProject', {'id': listProject.project.id}) }}">{{ listProject.project.name }}</a>
+                    <a class="dropdown-item" href="{{ path('single_project', {'id': listProject.project.id}) }}">{{ listProject.project.name }}</a>
                 {% endfor %}
             </div>
             {% block projectNavbar %}

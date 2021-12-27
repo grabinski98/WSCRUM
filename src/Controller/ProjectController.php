@@ -8,6 +8,7 @@ use App\Form\ProjectFormType;
 use App\Form\ProjectUserFormType;
 use App\Repository\ProjectRepository;
 use App\Repository\ProjectUserRepository;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -40,17 +41,18 @@ class ProjectController extends AbstractController
      */
     private $projectRepository;
     /**
-     * @var Stopwatch
+     * @var UserRepository
      */
-    private $stopwatch;
+    private $userRepository;
 
-    public function __construct(Security $security, ProjectUserRepository $projectUserRepository, EntityManagerInterface $entityManager, ProjectRepository $projectRepository, Stopwatch $stopwatch)
+
+    public function __construct(Security $security, ProjectUserRepository $projectUserRepository, EntityManagerInterface $entityManager, ProjectRepository $projectRepository, UserRepository $userRepository)
     {
         $this->security = $security;
         $this->projectUserRepository = $projectUserRepository;
         $this->entityManager = $entityManager;
         $this->projectRepository = $projectRepository;
-        $this->stopwatch = $stopwatch;
+        $this->userRepository = $userRepository;
     }
     public function checkOwner(Project $project):bool
     {
@@ -64,14 +66,14 @@ class ProjectController extends AbstractController
 
     public function listProjects(): array
     {
-        //TODO napisać do tego selecta, ponieważ na razie wyciągam wszystkie wartości z bazy
+        //TODO napisać do tego qb, ponieważ na razie wyciągam wszystkie wartości z bazy
         $projectUser = $this->projectRepository->findAll();
         $project = $this->projectUserRepository->findBy(['user' => $this->security->getUser()]);
         return $project;
     }
 
     /**
-     * @Route("/create", name="projectCreate")
+     * @Route("/create", name="project_create")
      */
     public function createProject(Request $request): Response
     {
@@ -89,7 +91,7 @@ class ProjectController extends AbstractController
             $projectUser->setProject($project);
             $this->entityManager->persist($projectUser);
             $this->entityManager->flush();
-            return $this->redirectToRoute('singleProject', ['id' => $project->getId()]);
+            return $this->redirectToRoute('single_project', ['id' => $project->getId()]);
         }
         return $this->render('project/addProject.html.twig', [
             'addProjectForm' => $form->createView(),
@@ -97,7 +99,7 @@ class ProjectController extends AbstractController
     }
 
     /**
-     * @Route ("/{id}", name="singleProject")
+     * @Route ("/{id}", name="single_project")
      */
     public function goToProject(string $id)
     {
@@ -108,7 +110,7 @@ class ProjectController extends AbstractController
         ]);
     }
     /**
-     * @Route ("/{id}/addUser", name="addUserToProject")
+     * @Route ("/{id}/addUser", name="add_user_to_project")
      */
     public function addUserToProject(string $id, Request $request,EntityManagerInterface $entityManager)
     {
@@ -121,7 +123,21 @@ class ProjectController extends AbstractController
             return new Response("Nie jesteś uprawniony do tej czynności",403);
         }
         $addUserToProject = new ProjectUser();
-        $form = $this->createForm(ProjectUserFormType::class, $addUserToProject);
+        //TODO zrobić to jako qb
+        $usersInProject = $this->projectUserRepository->findBy(['project' => $project]);
+        foreach ($usersInProject as $userInProject)
+        {
+            $usernamesProject[]=$userInProject->getUser()->getUsername();
+        }
+        $usersInSystem = $this->userRepository->findAll();
+        foreach ($usersInSystem as $userInSystem)
+        {
+            $usernamesSystem[]=$userInSystem->getUsername();
+        }
+        $form = $this->createForm(ProjectUserFormType::class, $addUserToProject, [
+            'usersInProject' => $usernamesProject,
+            'usersInSystem' =>$usernamesSystem
+        ]);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $addUserToProject->setProjectRoles($form->get('projectRoles')->getData());
@@ -129,7 +145,7 @@ class ProjectController extends AbstractController
             $addUserToProject->setProject($project);
             $this->entityManager->persist($addUserToProject);
             $this->entityManager->flush();
-            return $this->redirectToRoute('singleProject', ['id' => $id]);
+            return $this->redirectToRoute('single_project', ['id' => $id]);
         }
         return $this->render('project/addUserToProject.html.twig', [
             'addUserToProjectForm' => $form->createView(),
@@ -137,7 +153,7 @@ class ProjectController extends AbstractController
     }
 
     /**
-     * @Route ("/{id}/deleteProject", name="deleteProject")
+     * @Route ("/{id}/deleteProject", name="delete_project")
      */
     public function deleteProject(string $id)
     {
@@ -155,7 +171,7 @@ class ProjectController extends AbstractController
         }
         $this->entityManager->flush();
         //TODO Dodać flash message i potwierdzenie usunięcia
-        $this->addFlash('success', 'Projekt został usunięty!');
+        $this->addFlash('success', $projectUser->getProject()->getName().' został usunięty!');
         return $this->redirectToRoute("homepage");
     }
 }

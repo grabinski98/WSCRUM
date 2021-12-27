@@ -4,7 +4,7 @@
   {% block body %}
     {% for message in app.flashes('success') %}
       <div class="alert alert-success" onclick="this.style.visibility = 'hidden'">
-        <a onclick="this.style.visibility = 'hidden'">{{ message }}</a>
+        <a> {{ message }}</a>
       </div>
 
     {% endfor %}

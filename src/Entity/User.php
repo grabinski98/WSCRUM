@@ -8,6 +8,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
+
 /**
  * @ORM\Entity(repositoryClass=UserRepository::class)
  * @UniqueEntity(fields={"email"}, message="Istnieje już konto o podanym adresie email")
@@ -171,9 +172,10 @@ class User implements UserInterface
 
         return $this;
     }
-    public function __toString()
-    {
-        //TODO usunąć wyświetlanie siebie
-        return $this->getUsername();
-    }
+
+//    public function getUsernameByUserProject(array $usersInSystem, array $usersInProject)
+//    {
+//        dump(array_diff($usersInSystem, $usersInProject));
+//        return implode(",", array_diff($usersInSystem, $usersInProject));
+//    }
 }

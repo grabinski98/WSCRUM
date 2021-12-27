@@ -3,6 +3,9 @@
 namespace App\Form;
 
 use App\Entity\ProjectUser;
+use App\Entity\User;
+use App\Repository\UserRepository;
+use Doctrine\ORM\EntityRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -13,6 +16,8 @@ class ProjectUserFormType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $usersInProject = $options['usersInProject'];
+        $usersInSystem = $options['usersInSystem'];
         $builder
             ->add('projectRoles', ChoiceType::class, [
                 'multiple' =>true,
@@ -29,7 +34,13 @@ class ProjectUserFormType extends AbstractType
                 ]
             ])
             ->add('user', EntityType::class, [
-                'class' => 'App\Entity\User'
+                'class' => User::class,
+                'query_builder' => function (EntityRepository $er){
+                return $er->createQueryBuilder('u')
+                    ->where('u.email != :email')
+                    ->setParameter('email', 'tester@wp.pl');
+                },
+                'choice_label' => 'username'
             ])
         ;
     }
@@ -38,6 +49,10 @@ class ProjectUserFormType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => ProjectUser::class,
+        ]);
+        $resolver->setRequired([
+            'usersInProject',
+            'usersInSystem'
         ]);
     }
 }
