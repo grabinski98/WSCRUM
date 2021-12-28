@@ -4,8 +4,7 @@ namespace App\Form;
 
 use App\Entity\ProjectUser;
 use App\Entity\User;
-use App\Repository\UserRepository;
-use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -14,14 +13,24 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class ProjectUserFormType extends AbstractType
 {
+    /**
+     * @var EntityManagerInterface
+     */
+    private $em;
+
+    public function __construct(EntityManagerInterface $em)
+    {
+
+        $this->em = $em;
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $usersInProject = $options['usersInProject'];
-        $usersInSystem = $options['usersInSystem'];
+        $projectId = $options['id'];
         $builder
             ->add('projectRoles', ChoiceType::class, [
                 'multiple' =>true,
-                'label' => 'Role :',
+                'label' => 'Role:',
                 'choices' =>[
                     'Product Owner' => 'Product Owner',
                     'Scrum Master' => 'Scrum Master',
@@ -35,11 +44,8 @@ class ProjectUserFormType extends AbstractType
             ])
             ->add('user', EntityType::class, [
                 'class' => User::class,
-                'query_builder' => function (EntityRepository $er){
-                return $er->createQueryBuilder('u')
-                    ->where('u.email != :email')
-                    ->setParameter('email', 'tester@wp.pl');
-                },
+                'label' => 'Wybierz użytkownika: ',
+                'choices' => $this->getUsersWithoutUsersInProject($projectId),
                 'choice_label' => 'username'
             ])
         ;
@@ -51,8 +57,16 @@ class ProjectUserFormType extends AbstractType
             'data_class' => ProjectUser::class,
         ]);
         $resolver->setRequired([
-            'usersInProject',
-            'usersInSystem'
+            'id'
         ]);
+    }
+
+    public function getUsersWithoutUsersInProject(int $projectId)
+    {
+        $query = $this->em->createQuery(
+            'SELECT u FROM App\Entity\User u 
+             where u.id NOT IN (Select IDENTITY( pu.user) from App\Entity\ProjectUser as pu where pu.project = :projectId)'
+        );
+        return $query->setParameter('projectId', $projectId)->getResult();
     }
 }

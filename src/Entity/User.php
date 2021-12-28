@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -51,10 +53,20 @@ class User implements UserInterface
 
     /**
      * @ORM\Column(type="string")
-     *      * @Assert\Length(min = 8, max = 20, minMessage = "min_lenght", maxMessage = "max_lenght")
-     * @Assert\Regex(pattern="/^\(0\)[0-9]*$", message="Powinienieś podać wartość liczbową")
+     *      * @Assert\Length(min = 8, max = 20, minMessage = "Minimalna długość powinna wynieść 8", maxMessage = "Maksymalna długośc powinna wynieść 20")
+     * @Assert\Regex(pattern="/^([0-9]+)$/", message="Powinienieś podać wartość liczbową")
      */
     private $phoneNumber;
+
+    /**
+     * @ORM\OneToMany(targetEntity=ProjectUser::class, mappedBy="user")
+     */
+    private $projectUser;
+
+    public function __construct()
+    {
+        $this->projectUser = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -173,9 +185,33 @@ class User implements UserInterface
         return $this;
     }
 
-//    public function getUsernameByUserProject(array $usersInSystem, array $usersInProject)
-//    {
-//        dump(array_diff($usersInSystem, $usersInProject));
-//        return implode(",", array_diff($usersInSystem, $usersInProject));
-//    }
+    /**
+     * @return Collection|ProjectUser[]
+     */
+    public function getProjectUser(): Collection
+    {
+        return $this->projectUser;
+    }
+
+    public function addProjectUser(ProjectUser $projectUser): self
+    {
+        if (!$this->projectUser->contains($projectUser)) {
+            $this->projectUser[] = $projectUser;
+            $projectUser->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeProjectUser(ProjectUser $projectUser): self
+    {
+        if ($this->projectUser->removeElement($projectUser)) {
+            // set the owning side to null (unless already changed)
+            if ($projectUser->getUser() === $this) {
+                $projectUser->setUser(null);
+            }
+        }
+
+        return $this;
+    }
 }

@@ -8,7 +8,6 @@ use App\Form\ProjectFormType;
 use App\Form\ProjectUserFormType;
 use App\Repository\ProjectRepository;
 use App\Repository\ProjectUserRepository;
-use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,7 +19,6 @@ use Symfony\Component\Stopwatch\Stopwatch;
 /**
  * @Route ("project")
  */
-//TODO zmienić routki z camelCase na podłogi
 class ProjectController extends AbstractController
 {
 
@@ -40,19 +38,13 @@ class ProjectController extends AbstractController
      * @var ProjectRepository
      */
     private $projectRepository;
-    /**
-     * @var UserRepository
-     */
-    private $userRepository;
 
-
-    public function __construct(Security $security, ProjectUserRepository $projectUserRepository, EntityManagerInterface $entityManager, ProjectRepository $projectRepository, UserRepository $userRepository)
+    public function __construct(Security $security, ProjectUserRepository $projectUserRepository, EntityManagerInterface $entityManager, ProjectRepository $projectRepository)
     {
         $this->security = $security;
         $this->projectUserRepository = $projectUserRepository;
         $this->entityManager = $entityManager;
         $this->projectRepository = $projectRepository;
-        $this->userRepository = $userRepository;
     }
     public function checkOwner(Project $project):bool
     {
@@ -114,7 +106,6 @@ class ProjectController extends AbstractController
      */
     public function addUserToProject(string $id, Request $request,EntityManagerInterface $entityManager)
     {
-        //TODO wykluczyć użytkowników, którzy są już w projekcie
         $this->denyAccessUnlessGranted('ROLE_USER', null, 'Użytkownik niezalogowany, próbował dostać się do tej strony');
         $project = $this->projectRepository->findOneBy(['id' => $id]);
         if(! $this->checkOwner($project))
@@ -123,20 +114,8 @@ class ProjectController extends AbstractController
             return new Response("Nie jesteś uprawniony do tej czynności",403);
         }
         $addUserToProject = new ProjectUser();
-        //TODO zrobić to jako qb
-        $usersInProject = $this->projectUserRepository->findBy(['project' => $project]);
-        foreach ($usersInProject as $userInProject)
-        {
-            $usernamesProject[]=$userInProject->getUser()->getUsername();
-        }
-        $usersInSystem = $this->userRepository->findAll();
-        foreach ($usersInSystem as $userInSystem)
-        {
-            $usernamesSystem[]=$userInSystem->getUsername();
-        }
         $form = $this->createForm(ProjectUserFormType::class, $addUserToProject, [
-            'usersInProject' => $usernamesProject,
-            'usersInSystem' =>$usernamesSystem
+            'id' => $project->getId()
         ]);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
@@ -170,7 +149,7 @@ class ProjectController extends AbstractController
             $this->entityManager->remove($projectUser);
         }
         $this->entityManager->flush();
-        //TODO Dodać flash message i potwierdzenie usunięcia
+        //TODO potwierdzenie usunięcia
         $this->addFlash('success', $projectUser->getProject()->getName().' został usunięty!');
         return $this->redirectToRoute("homepage");
     }
