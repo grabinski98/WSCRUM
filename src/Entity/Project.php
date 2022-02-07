@@ -39,9 +39,15 @@ class Project
      */
     private $share;
 
+    /**
+     * @ORM\OneToMany(targetEntity=ProductBacklog::class, mappedBy="project", orphanRemoval=true)
+     */
+    private $productBacklogs;
+
     public function __construct()
     {
         $this->projectUser = new ArrayCollection();
+        $this->productBacklogs = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -111,6 +117,36 @@ class Project
     public function setShare(bool $share): self
     {
         $this->share = $share;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ProductBacklog[]
+     */
+    public function getProductBacklogs(): Collection
+    {
+        return $this->productBacklogs;
+    }
+
+    public function addProductBacklog(ProductBacklog $productBacklog): self
+    {
+        if (!$this->productBacklogs->contains($productBacklog)) {
+            $this->productBacklogs[] = $productBacklog;
+            $productBacklog->setProject($this);
+        }
+
+        return $this;
+    }
+
+    public function removeProductBacklog(ProductBacklog $productBacklog): self
+    {
+        if ($this->productBacklogs->removeElement($productBacklog)) {
+            // set the owning side to null (unless already changed)
+            if ($productBacklog->getProject() === $this) {
+                $productBacklog->setProject(null);
+            }
+        }
 
         return $this;
     }

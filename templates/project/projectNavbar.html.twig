@@ -1,0 +1,9 @@
+{% block projectNavbar %}
+
+    <a class="nav-link" href="{{ path('product_backlog', {'projectId': project.id}) }}">Rejestr produktu</a>
+    <a class="nav-link" href="#">Sprint</a>
+    {% if owner %}
+        <a class="nav-link" href="{{ path('add_user_to_project', {'id': project.id}) }}">Dodaj Użytkowników</a>
+        <a class="nav-link" href="{{ path('delete_project', {'id': project.id}) }}">Usuń Projekt</a>
+    {% endif %}
+{% endblock %}

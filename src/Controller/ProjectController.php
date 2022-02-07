@@ -2,10 +2,13 @@
 
 namespace App\Controller;
 
+use App\Entity\ProductBacklog;
 use App\Entity\Project;
 use App\Entity\ProjectUser;
+use App\Form\AddUserStoryFormType;
 use App\Form\ProjectFormType;
 use App\Form\ProjectUserFormType;
+use App\Repository\ProductBacklogRepository;
 use App\Repository\ProjectRepository;
 use App\Repository\ProjectUserRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -46,10 +49,11 @@ class ProjectController extends AbstractController
         $this->entityManager = $entityManager;
         $this->projectRepository = $projectRepository;
     }
-    public function checkOwner(Project $project):bool
+
+    public function checkRole(Project $project, string $role):bool
     {
-        $owner = $this->projectUserRepository->findBy(['user' => $this->security->getUser(), 'project' => $project]);
-        if(in_array('owner', $owner[0]->getProjectRoles()))
+        $array = $this->projectUserRepository->findBy(['user' => $this->security->getUser(), 'project' => $project]);
+        if(in_array($role, $array[0]->getProjectRoles()))
         {
             return true;
         }
@@ -98,7 +102,7 @@ class ProjectController extends AbstractController
         $project = $this->projectRepository->findOneBy(['id' => $id]);
         return $this->render('project/project.html.twig', [
             'project' => $project,
-            'owner' => $this->checkOwner($project)
+            'owner' => $this->checkRole($project, 'owner')
         ]);
     }
     /**
@@ -108,7 +112,7 @@ class ProjectController extends AbstractController
     {
         $this->denyAccessUnlessGranted('ROLE_USER', null, 'Użytkownik niezalogowany, próbował dostać się do tej strony');
         $project = $this->projectRepository->findOneBy(['id' => $id]);
-        if(! $this->checkOwner($project))
+        if(! $this->checkRole($project, 'owner'))
         {
             //TODO stworzyć template do obsługi błędów
             return new Response("Nie jesteś uprawniony do tej czynności",403);
@@ -128,6 +132,8 @@ class ProjectController extends AbstractController
         }
         return $this->render('project/addUserToProject.html.twig', [
             'addUserToProjectForm' => $form->createView(),
+            'owner' => $this->checkRole($project, 'owner'),
+            'project' => $project
         ]);
     }
 
@@ -152,5 +158,48 @@ class ProjectController extends AbstractController
         //TODO potwierdzenie usunięcia
         $this->addFlash('success', $projectUser->getProject()->getName().' został usunięty!');
         return $this->redirectToRoute("homepage");
+    }
+    /**
+     * @Route ("/{projectId}/productBacklog", name="product_backlog")
+     */
+    public function productBacklog(string $projectId, ProductBacklogRepository $productBacklogRepository)
+    {
+        $project = $this->projectRepository->findOneBy(['id' => $projectId]);
+        $productBacklog = $productBacklogRepository->findBy(['project' => $project]);
+        return $this->render('product_backlog/index.html.twig',[
+            'productsBacklog' => $productBacklog,
+            'owner' => $this->checkRole($project, 'owner'),
+            'project' => $project,
+            'productOwner' => $this->checkRole($project, 'Product Owner')
+        ]);
+    }
+    /**
+     * @Route ("/{projectId}/productBacklog/addUserStory", name="add_user_story")
+     */
+    public function addUserStory(string $projectId, Request $request)
+    {
+        $project = $this->projectRepository->findOneBy(['id' => $projectId]);
+        if(! $this->checkRole($project, 'Product Owner'))
+        {
+            //TODO stworzyć template do obsługi błędów
+            return new Response("Nie jesteś uprawniony do tej czynności",403);
+        }
+        $addUserStory = new ProductBacklog();
+        $form = $this->createForm(AddUserStoryFormType::class, $addUserStory);
+        $form->handleRequest($request);
+
+        if($form->isSubmitted() && $form->isValid()) {
+            $addUserStory->setProject($project);
+            $addUserStory->setName($form->get('name')->getData());
+            $addUserStory->setDescription($form->get('description')->getData());
+            $this->entityManager->persist($addUserStory);
+            $this->entityManager->flush();
+            return $this->redirectToRoute('product_backlog', ['projectId' => $projectId]);
+        }
+        return $this->render('product_backlog/addUserStory.html.twig',[
+            'addUserStory' => $form->createView(),
+            'owner' => $this->checkRole($project, 'owner'),
+            'project' => $project
+        ]);
     }
 }

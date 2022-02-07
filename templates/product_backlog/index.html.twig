@@ -1,0 +1,34 @@
+{% extends "base.html.twig" %}
+  {% block title %}{{ project.name }}{% endblock %}
+{% use "project/projectNavbar.html.twig" %}
+  {% block body %}
+
+      <main role="main" class="container">
+        <table class="table">
+            <thead>
+            <tr>
+                <th scope="col">
+                    {% if productOwner %}
+                        <a href="{{ path('add_user_story', {'projectId': project.id}) }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+                                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                            </svg>
+                        </a>
+                    {% endif %}
+                </th>
+                <th>User story</th>
+                <th>Opis</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for projectBacklog in productsBacklog %}
+                <tr>
+                    <th scope="row"> {{ loop.index }}</th>
+                    <td>{{ projectBacklog.name }}</td>
+                    <td>{{ projectBacklog.description }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+      </main>
+  {% endblock %}
