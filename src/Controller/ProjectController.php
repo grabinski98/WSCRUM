@@ -144,6 +144,11 @@ class ProjectController extends AbstractController
     {
         $this->denyAccessUnlessGranted('ROLE_USER', null, 'Użytkownik niezalogowany, próbował dostać się do tej strony');
         $project = $this->projectRepository->findOneBy(['id' => $id]);
+        if(! $this->checkRole($project, 'owner'))
+        {
+            //TODO stworzyć template do obsługi błędów
+            return new Response("Nie jesteś uprawniony do tej czynności",403);
+        }
         if(is_null($project))
         {
             throw $this->createNotFoundException("Nie znaleziono projektu o podanym id: ". $project);
@@ -195,6 +200,63 @@ class ProjectController extends AbstractController
             $this->entityManager->persist($addUserStory);
             $this->entityManager->flush();
             return $this->redirectToRoute('product_backlog', ['projectId' => $projectId]);
+        }
+        return $this->render('product_backlog/addUserStory.html.twig',[
+            'addUserStory' => $form->createView(),
+            'owner' => $this->checkRole($project, 'owner'),
+            'project' => $project
+        ]);
+    }
+    /**
+     * @Route ("/{projectId}/productBacklog/{userStoryId}/deleteUserStory", name="delete_user_story")
+     */
+    public function deleteUserStory(string $projectId, string $userStoryId, ProductBacklogRepository $productBacklogRepository)
+    {
+        $this->denyAccessUnlessGranted('ROLE_USER', null, 'Użytkownik niezalogowany, próbował dostać się do tej strony');
+        $project = $this->projectRepository->findOneBy(['id' => $projectId]);
+        if(! $this->checkRole($project, 'Product Owner'))
+        {
+            //TODO stworzyć template do obsługi błędów
+            return new Response("Nie jesteś uprawniony do tej czynności",403);
+        }
+        if(is_null($project))
+        {
+            throw $this->createNotFoundException("Nie znaleziono projektu o podanym id: ". $project);
+        }
+        $userStory = $productBacklogRepository->findOneBy(['id' => $userStoryId]);
+        $this->entityManager->remove($userStory);
+        $this->entityManager->flush();
+        $this->addFlash('success', 'Historyjka o nazwie: '.$userStory->getName().' została usunięta!');
+        return $this->redirectToRoute("product_backlog", ['projectId' => $projectId]);
+    }
+
+    /**
+     * @Route ("/{projectId}/productBacklog/{userStoryId}/editUserStory", name="edit_user_story")
+     */
+    public function editUserStory(string $projectId, string $userStoryId, ProductBacklogRepository $productBacklogRepository, Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_USER', null, 'Użytkownik niezalogowany, próbował dostać się do tej strony');
+        $project = $this->projectRepository->findOneBy(['id' => $projectId]);
+        if(! $this->checkRole($project, 'Product Owner'))
+        {
+            //TODO stworzyć template do obsługi błędów
+            return new Response("Nie jesteś uprawniony do tej czynności",403);
+        }
+        if(is_null($project))
+        {
+            throw $this->createNotFoundException("Nie znaleziono projektu o podanym id: ". $project);
+        }
+        $editUserStory = $productBacklogRepository->findOneBy(['id' => $userStoryId]);
+        $form = $this->createForm(AddUserStoryFormType::class, $editUserStory);
+        $form->handleRequest($request);
+
+        if($form->isSubmitted() && $form->isValid()) {
+            $editUserStory->setName($form->get('name')->getData());
+            $editUserStory->setDescription($form->get('description')->getData());
+            $this->entityManager->persist($editUserStory);
+            $this->entityManager->flush();
+            $this->addFlash('success', 'Historyjka o nazwie: ' . $editUserStory->getName() . ' została zedytowana!');
+            return $this->redirectToRoute("product_backlog", ['projectId' => $projectId]);
         }
         return $this->render('product_backlog/addUserStory.html.twig',[
             'addUserStory' => $form->createView(),
