@@ -13,6 +13,7 @@ use App\Repository\ProjectRepository;
 use App\Repository\ProjectUserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -138,10 +139,11 @@ class ProjectController extends AbstractController
     }
 
     /**
-     * @Route ("/{id}/deleteProject", name="delete_project")
+     * @Route ("/delete/project", name="delete_project")
      */
-    public function deleteProject(string $id)
+    public function deleteProject(Request $request)
     {
+        $id = $request->get('projectId');
         $this->denyAccessUnlessGranted('ROLE_USER', null, 'Użytkownik niezalogowany, próbował dostać się do tej strony');
         $project = $this->projectRepository->findOneBy(['id' => $id]);
         if(! $this->checkRole($project, 'owner'))
@@ -162,7 +164,7 @@ class ProjectController extends AbstractController
         $this->entityManager->flush();
         //TODO potwierdzenie usunięcia
         $this->addFlash('success', $projectUser->getProject()->getName().' został usunięty!');
-        return $this->redirectToRoute("homepage");
+        return new JsonResponse($project->getName());
     }
     /**
      * @Route ("/{projectId}/productBacklog", name="product_backlog")
