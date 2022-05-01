@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass=ProjectUserRepository::class)
  */
-class ProjectUser
+class ProjectUser implements \JsonSerializable
 {
     /**
      * @ORM\Id
@@ -79,5 +79,14 @@ class ProjectUser
         $this->user = $user;
 
         return $this;
+    }
+
+    public function jsonSerialize()
+    {
+        return [
+            'userName' => $this->getUser()->getName(),
+            'userSurName' => $this->getUser()->getSurname(),
+            'project' => $this->getProject()
+        ];
     }
 }

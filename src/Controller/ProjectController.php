@@ -18,7 +18,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Security;
-use Symfony\Component\Stopwatch\Stopwatch;
+use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * @Route ("project")
@@ -64,9 +64,32 @@ class ProjectController extends AbstractController
     public function listProjects(): array
     {
         //TODO napisać do tego qb, ponieważ na razie wyciągam wszystkie wartości z bazy
-        $projectUser = $this->projectRepository->findAll();
-        $project = $this->projectUserRepository->findBy(['user' => $this->security->getUser()]);
+        $project = $this->projectRepository->findAll();
+        $projectUser = $this->projectUserRepository->findBy(['user' => $this->security->getUser()]);
+        return $projectUser;
+    }
+
+    public function listProjectsHome(): array
+    {
+        //TODO napisać do tego qb, ponieważ na razie wyciągam wszystkie wartości z bazy
+        $project = $this->projectRepository->findAll();
+        $projectUser = $this->projectUserRepository->findBy(['project' => $project]);
         return $project;
+    }
+
+    /**
+     * @Route ("/get-single-project" , name="get_single_project_for_ajax")
+     */
+    public function getSingleProject(Request $request, SerializerInterface $serializer)
+    {
+        $id = $request->get('projectId');
+        $project = $this->projectRepository->findOneBy(['id' => $id]);
+        /** @var ProjectUser $projectUser */
+        $projectUser = $this->projectUserRepository->findBy(['project' => $project]);
+
+        $jsonContent = json_encode($projectUser, JSON_PRETTY_PRINT);
+        return new JsonResponse($jsonContent);
+
     }
 
     /**
@@ -199,6 +222,8 @@ class ProjectController extends AbstractController
             $addUserStory->setProject($project);
             $addUserStory->setName($form->get('name')->getData());
             $addUserStory->setDescription($form->get('description')->getData());
+            $addUserStory->setPriority($form->get('priority')->getData());
+            $addUserStory->setStatus("new");
             $this->entityManager->persist($addUserStory);
             $this->entityManager->flush();
             return $this->redirectToRoute('product_backlog', ['projectId' => $projectId]);
@@ -255,6 +280,7 @@ class ProjectController extends AbstractController
         if($form->isSubmitted() && $form->isValid()) {
             $editUserStory->setName($form->get('name')->getData());
             $editUserStory->setDescription($form->get('description')->getData());
+            $editUserStory->setPriority($form->get('priority')->getData());
             $this->entityManager->persist($editUserStory);
             $this->entityManager->flush();
             $this->addFlash('success', 'Historyjka o nazwie: ' . $editUserStory->getName() . ' została zedytowana!');
